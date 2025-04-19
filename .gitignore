@@ -1,0 +1,6 @@
+tmp*/
+tmp*
+.vscode
+*.tgz
+test/
+*.so*
