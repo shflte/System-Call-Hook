@@ -4,3 +4,6 @@
 *.tgz
 test/
 *.so*
+*.o
+.gdbinit
+*.html*

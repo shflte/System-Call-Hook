@@ -3,11 +3,12 @@
 #include <unistd.h>
 
 #include "trampoline_codegen.h"
+#include "trampoline.h"
 
 #define PAGE_SIZE 4096
 
-void trampoline_handler() {
-    printf("Hello from trampoline!\n");
+void* get_trampoline_address() {
+    return (void*)TRAMPOLINE_ADDR;
 }
 
 __attribute__((constructor))
@@ -23,7 +24,7 @@ void init_trampoline() {
     memset(addr, 0x90, 512);
     uint8_t* code = (uint8_t*)addr + 512;
 
-    EMIT_MOVABS_RAX_IMM64(code, trampoline_handler);
+    EMIT_MOVABS_RAX_IMM64(code, trampoline_entry);
     EMIT_CALL_RAX(code);
     EMIT_RET(code);
 }

@@ -19,7 +19,7 @@ sudo cp -r "/lib/modules/$KERNEL_VERSION" "$ROOTFS_DIR/lib/modules/"
 echo "[+] Installing useful packages in chroot..."
 sudo chroot "$ROOTFS_DIR" /bin/bash <<EOF
 apt update
-apt install -y libcapstone-dev build-essential vim
+apt install -y libcapstone-dev build-essential vim gdb
 EOF
 
 echo "[+] Packing into image: $ROOT_IMG..."
