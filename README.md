@@ -1,4 +1,31 @@
 # System Call Hook and Logging
+
+## Environment Setup
+**Tools**
+```
+sudo apt update
+sudo apt install qemu-system-x86 qemu-utils debootstrap libguestfs-tools -y
+```
+
+**Build Image**
+```
+./build_vm_image.sh
+```
+
+**Run VM**
+```
+./run_vm.sh
+```
+
+**Mount Host Shared Folder**
+```
+# as the guest
+modprobe 9p
+mkdir /mnt/host
+mount -t 9p -o trans=virtio hostshare /mnt/host
+cd /mnt/host
+```
+
 ## Setup Trampoline
 基本上就是讓 shared library 被 load 時，去把 `0x0` 開始的這段 memory 塞好 trampoline code。
 

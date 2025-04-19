@@ -1,5 +1,5 @@
-tmp*/
-tmp*
+/debian-root/
+/debian-root.img
 .vscode
 *.tgz
 test/
