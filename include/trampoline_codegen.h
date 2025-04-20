@@ -4,17 +4,17 @@
 #include <stdint.h>
 #include <string.h>
 
-// movabs rax, imm64
-#define EMIT_MOVABS_RAX_IMM64(code, addr) do { \
-    *(code)++ = 0x48; *(code)++ = 0xB8; \
+// movabs r11, imm64
+#define EMIT_MOVABS_R11_IMM64(code, addr) do { \
+    *(code)++ = 0x49; *(code)++ = 0xBB; /* mov r11, imm64 */ \
     uintptr_t tmp_addr = (uintptr_t)(addr); \
     memcpy((code), &tmp_addr, sizeof(tmp_addr)); \
     (code) += sizeof(tmp_addr); \
 } while (0)
 
-// call rax
-#define EMIT_CALL_RAX(code) do { \
-    *(code)++ = 0xFF; *(code)++ = 0xD0; \
+// call r11
+#define EMIT_CALL_R11(code) do { \
+    *(code)++ = 0x41; *(code)++ = 0xFF; *(code)++ = 0xD3; \
 } while (0)
 
 // ret
