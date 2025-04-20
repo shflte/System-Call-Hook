@@ -19,6 +19,9 @@ void rewrite_syscall() {
         return;
     }
 
+    void* trigger_start = (void*)trigger_syscall;
+    void* trigger_end = trigger_start + 0x1A; // Length of trigger_syscall()
+
     char line[MAX_LINE];
     while (fgets(line, sizeof(line), maps)) {
         unsigned long start, end;
@@ -30,7 +33,6 @@ void rewrite_syscall() {
             continue;
 
         size_t region_size = end - start;
-        uint8_t* buffer = (uint8_t*)start;
 
         if (mprotect((void*)start, region_size, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
             perror("mprotect");
@@ -45,12 +47,16 @@ void rewrite_syscall() {
             fprintf(stderr, "capstone init failed\n");
             continue;
         }
+        count = cs_disasm(handle, (uint8_t*)start, region_size, start, 0, &insn);
 
         cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
         for (size_t i = 0; i < count; i++) {
             if (insn[i].id == X86_INS_SYSCALL) {
                 uint8_t* addr = (uint8_t*)insn[i].address;
+                if ((void*)addr >= trigger_start && (void*)addr < trigger_end) {
+                    continue;
+                }
 
                 // syscall -> call rax = FF D0
                 addr[0] = 0xFF;
