@@ -29,6 +29,8 @@ trampoline_entry:
     pop rdx
     pop rsi
     pop rdi
-    pop rax
+
+    // Skip RAX
+    add rsp, 8
 
     ret
