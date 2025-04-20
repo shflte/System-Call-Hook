@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/syscall.h>
 
 #include "trampoline.h"
 
@@ -18,14 +19,15 @@ static char leet_to_char(char c) {
     }
 }
 
+static char decoded[4096];
+
 int64_t syscall_hook_handler(int64_t num, int64_t arg1, int64_t arg2, int64_t arg3,
                              int64_t arg4, int64_t arg5, int64_t arg6) {
-    if (num == 1 && arg1 == STDOUT_FILENO) {
+    if (num == SYS_write && arg1 == STDOUT_FILENO) {
         char* buf = (char*)arg2;
         size_t len = (size_t)arg3;
 
         // Copy and decode buffer
-        char decoded[4096];
         if (len >= sizeof(decoded)) len = sizeof(decoded) - 1;
         for (size_t i = 0; i < len; ++i) {
             decoded[i] = leet_to_char(buf[i]);
