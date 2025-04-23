@@ -2,8 +2,10 @@
 #include <stdint.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "trampoline.h"
+#include "syscall_wrappers.h"
 #include "hook.h"
 
 syscall_hook_fn_t hooked_syscall = trigger_syscall;
@@ -11,14 +13,14 @@ syscall_hook_fn_t hooked_syscall = trigger_syscall;
 void init_hook_library() {
     const char* hook_path = getenv("LIBZPHOOK");
     if (!hook_path) {
-        perror("[-] LIBZPHOOK not set");
+        z_perror("LIBZPHOOK not set");
         return;
     }
 
     // Load hook library in a new namespace to prevent recursion
-    void* handle = dlmopen(LM_ID_NEWLM, hook_path, RTLD_NOW);
+    void* handle = dlmopen(LM_ID_NEWLM, hook_path, RTLD_NOW | RTLD_LOCAL);
     if (!handle) {
-        perror("[-] dlmopen");
+        z_perror("dlmopen failed");
         return;
     }
 
@@ -26,7 +28,7 @@ void init_hook_library() {
     void (*hook_init)(const syscall_hook_fn_t, syscall_hook_fn_t*);
     *(void**)(&hook_init) = dlsym(handle, "__hook_init");
     if (!hook_init) {
-        perror("[-] dlsym");
+        z_perror("dlsym failed");
         return;
     }
 

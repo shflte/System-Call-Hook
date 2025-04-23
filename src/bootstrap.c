@@ -7,6 +7,6 @@ void bootstrap_init() {
     if (getenv("ZDEBUG")) asm("int3"); // todo: remove
 
     init_trampoline();
-    init_hook_library();
     rewrite_syscall();
+    init_hook_library();
 }
