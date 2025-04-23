@@ -20,7 +20,7 @@ trampoline_entry:
     mov r8,  [rsp + 0x10]
     mov r9,  [rsp + 0x8]
 
-    call syscall_hook_handler
+    call syscall_handler
 
     // Restore the context of the caller
     pop r9

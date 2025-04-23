@@ -10,7 +10,6 @@
 
 #define MAX_LINE 512
 
-__attribute__((constructor))
 void rewrite_syscall() {
     int fd = SYS_OPENAT(AT_FDCWD, "/proc/self/maps", O_RDONLY, 0);
     if (fd < 0) return;

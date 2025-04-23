@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <sys/mman.h>
 
 #include "trampoline_codegen.h"
@@ -9,13 +7,10 @@
 
 #define PAGE_SIZE 4096
 
-bool using_hook_library = false;
-
 void* get_trampoline_address() {
     return (void*)TRAMPOLINE_ADDR;
 }
 
-__attribute__((constructor))
 void init_trampoline() {
     void* addr = (void*) mmap((void*)0x0, PAGE_SIZE,
                                   PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -32,9 +27,4 @@ void init_trampoline() {
     EMIT_MOVABS_R11_IMM64(code, trampoline_entry);
     EMIT_CALL_R11(code);
     EMIT_RET(code);
-
-    using_hook_library = __builtin_expect(getenv("LIBZPHOOK") != NULL, 0);
-    if (using_hook_library) {
-        init_hook_library();
-    }
 }
