@@ -1,65 +1,50 @@
-CC = gcc
-AS = gcc
-BUILD_DIR = build
-SRC_DIR = src
-
-LIBS = libzpoline.so.1 libzpoline.so.2 libzpoline.so
-
-OPT_FLAGS = -O2
-DEBUG_FLAGS = -O0 -g
-
-CFLAGS = -Wall -fPIC -D_GNU_SOURCE -Iinclude
-ASFLAGS = -Wall -fPIC -masm=intel
-LDFLAGS = -shared
-LDLIBS = -lcapstone -ldl
+CC       := gcc
+AS       := gcc
+BUILD    := build
+SRC      := $(wildcard src/*.c) $(wildcard src/*.S)
+OBJ	     := $(patsubst src/%.c,$(BUILD)/%.o,$(filter %.c,$(SRC))) \
+            $(patsubst src/%.S,$(BUILD)/%.o,$(filter %.S,$(SRC)))
+INCLUDE := -Iinclude
+BASE_CFLAGS := -Wall -fPIC -D_GNU_SOURCE $(INCLUDE)
+ASFLAGS := -Wall -fPIC -masm=intel
+LDFLAGS := -shared
+LDLIBS  := -lcapstone -ldl
 
 ifeq ($(debug),1)
-	CFLAGS += $(DEBUG_FLAGS)
+    CFLAGS := $(BASE_CFLAGS) -O0 -g
 else
-	CFLAGS += $(OPT_FLAGS)
+    CFLAGS := $(BASE_CFLAGS) -O2
 endif
 
-.PHONY: all clean
+.PHONY: all step1 step2 copy_so clean
 
-all: $(addprefix $(BUILD_DIR)/, $(LIBS))
+all: step1 step2 $(BUILD)/libzpoline.so copy_so
 
-# Step 1
-$(BUILD_DIR)/libzpoline.so.1: \
-	$(BUILD_DIR)/init_trampoline.o \
-	$(BUILD_DIR)/trampoline_hello.o
-	@mkdir -p $(BUILD_DIR)
-	$(CC) -o $@ $^ $(LDFLAGS)
+step1:
+	@$(MAKE) -C step1
 
-# Step 2
-$(BUILD_DIR)/libzpoline.so.2: \
-	$(BUILD_DIR)/init_trampoline.o \
-	$(BUILD_DIR)/rewrite_syscall.o \
-	$(BUILD_DIR)/syscall_hook_handler.o \
-	$(BUILD_DIR)/trampoline_entry.o \
-	$(BUILD_DIR)/trigger_syscall.o
-	@mkdir -p $(BUILD_DIR)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+step2:
+	@$(MAKE) -C step2
 
-# Step 3
-$(BUILD_DIR)/libzpoline.so: \
-	$(BUILD_DIR)/init_trampoline.o \
-	$(BUILD_DIR)/rewrite_syscall.o \
-	$(BUILD_DIR)/init_hook.o \
-	$(BUILD_DIR)/syscall_hook_handler.o \
-	$(BUILD_DIR)/trampoline_entry.o \
-	$(BUILD_DIR)/trigger_syscall.o
-	@mkdir -p $(BUILD_DIR)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+$(BUILD)/libzpoline.so: $(OBJ)
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
-# Rules for compiling .c and .S
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+$(BUILD)/%.o: src/%.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.S | $(BUILD_DIR)
+$(BUILD)/%.o: src/%.S | $(BUILD)
 	$(AS) $(ASFLAGS) -c $< -o $@
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(BUILD):
+	mkdir -p $(BUILD)
+
+copy_so: step1 step2 $(BUILD)/libzpoline.so
+	@cp step1/build/libzpoline.so.1   .
+	@cp step2/build/libzpoline.so.2   .
+	@cp build/libzpoline.so           .
 
 clean:
-	rm -rf $(BUILD_DIR)
+	@$(MAKE) -C step1 clean
+	@$(MAKE) -C step2 clean
+	rm -rf $(BUILD) libzpoline.so.1 libzpoline.so.2 libzpoline.so
