@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/syscall.h>
 
 #include "trampoline.h"
@@ -23,6 +24,10 @@ static char decoded[4096];
 
 int64_t syscall_hook_handler(int64_t num, int64_t arg1, int64_t arg2, int64_t arg3,
                              int64_t arg4, int64_t arg5, int64_t arg6) {
+    if (using_hook_library) {
+        return get_hooked_syscall()(arg1, arg2, arg3, arg4, arg5, arg6, num);
+    }
+
     if (num == SYS_write && arg1 == STDOUT_FILENO) {
         char* buf = (char*)arg2;
         size_t len = (size_t)arg3;
