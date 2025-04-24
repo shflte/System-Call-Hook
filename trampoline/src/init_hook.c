@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "init_hook.h"
 #include "trampoline.h"
 #include "syscall_wrappers.h"
-#include "hook.h"
 
 syscall_hook_fn_t hooked_syscall = trigger_syscall;
 
-void init_hook_library() {
+void init_hook() {
     const char* hook_path = getenv("LIBZPHOOK");
     if (!hook_path) {
         z_perror("LIBZPHOOK not set");

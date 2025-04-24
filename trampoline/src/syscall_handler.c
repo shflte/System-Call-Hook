@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "trampoline.h"
-#include "hook.h"
+#include "init_hook.h"
 
 int64_t syscall_handler(int64_t arg1, int64_t arg2, int64_t arg3,
                         int64_t arg4, int64_t arg5, int64_t arg6,
