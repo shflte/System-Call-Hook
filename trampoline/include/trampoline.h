@@ -8,8 +8,9 @@
 
 void init_trampoline();
 void rewrite_syscall();
-void* trampoline_entry();
+void* trampoline();
 void* get_trampoline_address();
+void set_retptr(uint64_t retptr);
 int64_t trigger_syscall(int64_t syscall_no, int64_t arg1, int64_t arg2, int64_t arg3,
                         int64_t arg4, int64_t arg5, int64_t arg6);
 int64_t syscall_handler(int64_t syscall_no, int64_t arg1, int64_t arg2, int64_t arg3,

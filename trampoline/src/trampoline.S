@@ -1,8 +1,8 @@
 .intel_syntax noprefix
-.global trampoline_entry
-.type trampoline_entry, @function
+.global trampoline
+.type trampoline, @function
 
-trampoline_entry:
+trampoline:
     // Maintain the context of the caller
     push rdi
     push rsi
@@ -12,8 +12,17 @@ trampoline_entry:
     push r9
     push rax
 
+    // Original syscall return address
+    mov rdi, [rsp + 0x30 + 0x10] // original rdi + 0x10
+    call set_retptr
+
     // Move the syscall number and arguments to the appropriate registers for C calling convention
-    mov rcx, r10
+    mov rdi, [rsp + 0x30]
+    mov rsi, [rsp + 0x28]
+    mov rdx, [rsp + 0x20]
+    mov rcx, [rsp + 0x18]
+    mov r8, [rsp + 0x10]
+    mov r9, [rsp + 0x8]
 
     call syscall_handler
 

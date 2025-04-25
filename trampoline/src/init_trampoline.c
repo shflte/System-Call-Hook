@@ -24,7 +24,7 @@ void init_trampoline() {
     memset(addr, 0x90, 512);
 
     uint8_t* code = (uint8_t*)addr + 512;
-    EMIT_MOVABS_R11_IMM64(code, trampoline_entry);
+    EMIT_MOVABS_R11_IMM64(code, trampoline);
     EMIT_CALL_R11(code);
     EMIT_RET(code);
 }
