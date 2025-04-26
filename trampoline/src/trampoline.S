@@ -3,8 +3,12 @@
 .type trampoline, @function
 
 trampoline:
-    // vfork fast path workaround
-    cmp rax, 0x3a // __NR_vfork
+    // --- fastpath: rt_sigreturn ---
+    cmp rax, 0xf                  // __NR_rt_sigreturn
+    je .fastpath_rt_sigreturn
+
+    // --- fastpath: vfork ---
+    cmp rax, 0x3a                 // __NR_vfork
     jne .continue_trampoline
 
     add rsp, 0x8
@@ -14,6 +18,11 @@ trampoline:
     mov rsi, 0x20d
     push rsi
     ret
+
+.fastpath_rt_sigreturn:
+    add rsp, 0x10
+    syscall
+    ud2
 
 .continue_trampoline:
     // Maintain the context of the caller
