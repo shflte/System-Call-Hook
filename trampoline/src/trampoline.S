@@ -3,6 +3,19 @@
 .type trampoline, @function
 
 trampoline:
+    // vfork fast path workaround
+    cmp rax, 0x3a // __NR_vfork
+    jne .continue_trampoline
+
+    add rsp, 0x8
+    pop rsi
+    syscall
+    push rsi
+    mov rsi, 0x20d
+    push rsi
+    ret
+
+.continue_trampoline:
     // Maintain the context of the caller
     push rdi
     push rsi

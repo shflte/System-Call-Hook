@@ -25,6 +25,9 @@ void rewrite_syscall() {
     if (total <= 0) return;
     buf[total] = '\0';
 
+    void* trampoline_start = (void*)trampoline;
+    void* trampoline_end = trampoline_start + 0x50; // Length of trampoline()
+
     void* trigger_start = (void*)trigger_syscall;
     void* trigger_end = trigger_start + 0x1A; // Length of trigger_syscall()
 
@@ -74,7 +77,8 @@ void rewrite_syscall() {
             if (insn[0].id == X86_INS_SYSCALL) {
                 uint8_t* addr = (uint8_t*)insn[0].address;
 
-                if ((void*)addr < trigger_start || (void*)addr >= trigger_end) {
+                if (((void*)addr < trigger_start || (void*)addr >= trigger_end) &&
+                    ((void*)addr < trampoline_start || (void*)addr >= trampoline_end)) {
                     addr[0] = 0xFF;
                     addr[1] = 0xD0;
                     for (int j = 2; j < insn[0].size; j++) {
