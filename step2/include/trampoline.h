@@ -7,6 +7,7 @@
 #define TRAMPOLINE_ADDR 0x200
 
 // Trampoline Setup
+void rewrite_syscall();
 void* trampoline_entry();
 void* get_trampoline_address();
 int64_t syscall_hook_handler(int64_t syscall_no, int64_t arg1, int64_t arg2, int64_t arg3,

@@ -30,4 +30,6 @@ void init_trampoline() {
     EMIT_MOVABS_R11_IMM64(code, trampoline_entry);
     EMIT_CALL_R11(code);
     EMIT_RET(code);
+
+    rewrite_syscall();
 }

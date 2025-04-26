@@ -8,18 +8,22 @@
 #include "trampoline.h"
 #include "syscall_wrappers.h"
 
-#define MAX_LINE 512
+#define PROC_MAP_BUF_SIZE 0x10000
 
 void rewrite_syscall() {
     int fd = SYS_OPENAT(AT_FDCWD, "/proc/self/maps", O_RDONLY, 0);
     if (fd < 0) return;
 
-    char buf[8192];
-    ssize_t bytes = SYS_READ(fd, buf, sizeof(buf)-1);
-    SYS_CLOSE(fd);
-    if (bytes <= 0) return;
+    char buf[PROC_MAP_BUF_SIZE];
+    ssize_t total = 0, n;
+    while (total < (sizeof(buf)-1) &&
+           (n = SYS_READ(fd, buf + total, sizeof(buf)-1 - total)) > 0) {
+        total += n;
+    }
 
-    buf[bytes] = '\0';
+    SYS_CLOSE(fd);
+    if (total <= 0) return;
+    buf[total] = '\0';
 
     void* trigger_start = (void*)trigger_syscall;
     void* trigger_end = trigger_start + 0x1A; // Length of trigger_syscall()
@@ -33,7 +37,9 @@ void rewrite_syscall() {
             continue;
         }
 
-        if (strstr(perm, "x") == NULL || strstr(line, "[vdso]") || strstr(line, "[vsyscall]")) {
+        if (strstr(perm, "x") == NULL ||
+            strstr(line, "[vdso]") || strstr(line, "[vsyscall]") ||
+            strstr(line, "libcapstone.so")) {
             line = strtok(NULL, "\n");
             continue;
         }
