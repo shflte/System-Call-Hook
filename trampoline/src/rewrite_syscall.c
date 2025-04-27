@@ -35,13 +35,18 @@ void rewrite_syscall() {
     while (line) {
         unsigned long start, end;
         char perm[5];
-        if (sscanf(line, "%lx-%lx %4s", &start, &end, perm) != 3) {
+        char offset_str[20];
+        char dev[20];
+        char inode[20];
+        char pathname[100];
+        if (sscanf(line, "%lx-%lx %4s %s %s %s %s",
+                   &start, &end, perm, offset_str, dev, inode, pathname) < 6) {
             line = strtok(NULL, "\n");
             continue;
         }
 
-        if (strstr(perm, "x") == NULL ||
-            strstr(line, "[vdso]") || strstr(line, "[vsyscall]") ||
+        if ((strstr(perm, "x") == NULL) ||
+            (strcmp(pathname, "[vdso]") == 0) || (strcmp(pathname, "[vsyscall]") == 0) ||
             strstr(line, "libcapstone.so")) {
             line = strtok(NULL, "\n");
             continue;
